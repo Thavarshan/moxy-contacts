@@ -62,6 +62,7 @@ def verify_from_environment() -> None:
     worker_id = str(worker.get("id", ""))
     if not worker_id:
         raise AccessConfigurationError("Cloudflare did not return a Worker ID.")
+    worker_name = str(worker.get("name", ""))
 
     applications: list[Mapping[str, object]] = []
     page = 1
@@ -93,7 +94,25 @@ def verify_from_environment() -> None:
         ):
             target_apps.append(application)
     if len(target_apps) != 1:
-        raise AccessConfigurationError("Cloudflare Access is not configured for this Worker.")
+        destination_summary = []
+        for application in applications[:10]:
+            destinations = application.get("destinations", [])
+            if not isinstance(destinations, list):
+                continue
+            for destination in destinations:
+                if not isinstance(destination, Mapping):
+                    continue
+                destination_id = str(destination.get("worker_id", ""))
+                destination_summary.append(
+                    f"{destination.get('type', 'unknown')}"
+                    f"(id_matches={destination_id == worker_id}, "
+                    f"name_matches={destination_id == worker_name})"
+                )
+        summary = ", ".join(destination_summary) or "no worker destinations returned"
+        raise AccessConfigurationError(
+            "Cloudflare Access is not configured for this Worker "
+            f"(received {len(applications)} applications; destinations: {summary})."
+        )
 
     policies_by_application: dict[str, list[Mapping[str, object]]] = {}
     app_id = str(target_apps[0].get("id", ""))

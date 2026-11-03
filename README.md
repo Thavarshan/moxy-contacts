@@ -58,7 +58,9 @@ Cloudflare Access must protect the Worker before the app is deployed. Its allow 
 
 GitHub Actions runs formatting, lint, types, tests (including a local Worker + D1 round trip), frontend asset checks, and a package build. Production deployment is a separate manual workflow run from `main`; it first passes the same commit through checks, verifies the actual Access application and exact-email policy through Cloudflare's API, and checks that unauthenticated requests are blocked. Only then does it apply the D1 migration and deploy. A post-deployment check repeats the unauthenticated request test.
 
-For CI deployment, configure repository secrets `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`, and a long random `SESSION_SECRET`. The API token needs Workers Scripts edit, D1 edit, and Access Apps and Policies read permissions for this Cloudflare account. Set repository variables `ACCESS_OWNER_EMAIL` to the exact email allowed by Access and `PRODUCTION_WORKER_URL` to the Worker origin. The deploy workflow only runs when you choose **deploy** for a dispatch from `main`; it never deploys on a normal push. This manual gate does not replace GitHub branch protection or Cloudflare Access.
+For CI deployment, add repository secret `CLOUDFLARE_API_TOKEN` with Workers Scripts edit, D1 edit, and Access Apps and Policies read permissions for this Cloudflare account. Set repository variable `CLOUDFLARE_ACCOUNT_ID` to this account's ID, and secret `SESSION_SECRET` to a long random value. Set `ACCESS_OWNER_EMAIL` to the exact email allowed by Access and `PRODUCTION_WORKER_URL` to the Worker origin. The deploy workflow only runs when you choose **deploy** for a dispatch from `main`; it never deploys on a normal push.
+
+The current GitHub plan does not allow branch protection or deployment environments on a private personal repository. The workflow's manual `main`-only dispatch is the deployment gate for now; pushes still run checks and never deploy. GitHub Pro enables private-repository branch protection if you want to require pull requests and the `checks` result. This app does not enable a paid plan.
 
 ## Checks
 

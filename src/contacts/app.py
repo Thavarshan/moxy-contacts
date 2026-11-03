@@ -108,7 +108,7 @@ def create_app(
             return render_template(
                 "error.html",
                 title="Private archive is not ready",
-                message="The private archive database is not ready.",
+                message="The private archive is not configured yet.",
                 status=503,
             ), 503
 

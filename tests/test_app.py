@@ -261,7 +261,7 @@ def test_production_without_a_d1_binding_fails_closed_even_with_fake_access_head
     )
 
     assert response.status_code == 503
-    assert b"database is not ready" in response.data
+    assert b"not configured yet" in response.data
 
 
 def test_production_without_session_secret_stays_closed_with_a_database(

@@ -56,6 +56,8 @@ The app has no phone/iCloud sync, automatic exports, or background jobs. Free D1
 
 Cloudflare Access must protect the Worker before the app is deployed. Its allow policy should include only the owner's exact sign-in email, and should cover the `workers.dev` hostname. Preview URLs are disabled. The application does not accept identity headers or a source-code flag as proof of sign-in; Cloudflare Access blocks unauthenticated requests before Flask runs.
 
+Before first-time Access setup, the production app returns a generic `503` until `SESSION_SECRET` is deployed. Setting that signing secret does not authenticate anyone. Only deploy the secret after Cloudflare Access is enabled and verified.
+
 GitHub Actions runs formatting, lint, types, tests (including a local Worker + D1 round trip), frontend asset checks, and a package build. Production deployment is a separate manual workflow run from `main`; it first passes the same commit through checks, verifies the actual Access application and exact-email policy through Cloudflare's API, and checks that unauthenticated requests are blocked. Only then does it apply the D1 migration and deploy. A post-deployment check repeats the unauthenticated request test.
 
 For CI deployment, add repository secret `CLOUDFLARE_API_TOKEN` with Workers Scripts edit, D1 edit, and Access Apps and Policies read permissions for this Cloudflare account. Set repository variable `CLOUDFLARE_ACCOUNT_ID` to this account's ID, and secret `SESSION_SECRET` to a long random value. Set `ACCESS_OWNER_EMAIL` to the exact email allowed by Access and `PRODUCTION_WORKER_URL` to the Worker origin. The deploy workflow only runs when you choose **deploy** for a dispatch from `main`; it never deploys on a normal push.

@@ -35,9 +35,6 @@
       ],
       "vars": {
         "APP_ENV": "production"
-      },
-      "secrets": {
-        "required": ["SESSION_SECRET"]
       }
     }
   }

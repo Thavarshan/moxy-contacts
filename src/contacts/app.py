@@ -28,6 +28,13 @@ from werkzeug.exceptions import HTTPException
 from werkzeug.wrappers import Response
 
 from contacts.archive import ArchiveError, ContactArchive
+from contacts.contact_form import (
+    ContactFormError,
+    build_contact_vcard,
+    contact_form_values_from_post,
+    contact_form_values_from_vcard,
+    empty_contact_form_values,
+)
 from contacts.storage import ArchiveStore, D1ArchiveStore, SQLiteArchiveStore
 from contacts.vcards import parse_photo, parse_vcard
 
@@ -35,6 +42,10 @@ ROOT = Path(__file__).resolve().parents[2]
 PUBLIC_DIR = ROOT / "public"
 LOCAL_SECRET_KEY = "local-development-only-not-for-real-data"
 MAX_UPLOAD_BYTES = 12 * 1024 * 1024
+
+
+def _editor_mode() -> str:
+    return "fields" if request.form.get("editor_mode") == "fields" else "vcard"
 
 
 def _binding_value(bindings: object, name: str) -> object | None:
@@ -147,7 +158,7 @@ def create_app(
             "default-src 'self'; style-src 'self'; img-src 'self'; base-uri 'self'; "
             "form-action 'self'; frame-ancestors 'none'",
         )
-        if request.endpoint == "local_asset":
+        if request.endpoint in {"local_asset", "local_script"}:
             response.headers["Cache-Control"] = "public, max-age=3600"
         else:
             response.headers["Cache-Control"] = "private, no-store"
@@ -216,6 +227,10 @@ def create_app(
     def local_asset(filename: str) -> Response:
         return send_from_directory(PUBLIC_DIR / "css", filename)
 
+    @app.get("/js/<path:filename>")
+    def local_script(filename: str) -> Response:
+        return send_from_directory(PUBLIC_DIR / "js", filename)
+
     @app.get("/contacts")
     def browse() -> str:
         return render_template("browse.html", contacts=archive().list_contacts())
@@ -249,17 +264,35 @@ def create_app(
     @app.route("/contacts/new", methods=["GET", "POST"])
     def new_contact() -> str | Response | tuple[str, int]:
         starter = (
-            "BEGIN:VCARD\r\nVERSION:3.0\r\nN:Example;New;;;;\r\nFN:New Example\r\nEND:VCARD\r\n"
+            "BEGIN:VCARD\r\nVERSION:3.0\r\nN:Example;New;;;\r\nFN:New Example\r\nEND:VCARD\r\n"
         )
         if request.method == "GET":
-            return render_template("edit.html", title="Add a contact", vcard=starter)
+            return render_template(
+                "edit.html",
+                title="Add a contact",
+                vcard=starter,
+                editor_mode="fields",
+                form_values=empty_contact_form_values(),
+            )
+        editor_mode = _editor_mode()
         try:
-            contact = archive().create_contact(request.form.get("vcard", "").encode("utf-8"))
-        except ArchiveError as error:
+            payload = (
+                build_contact_vcard(request.form)
+                if editor_mode == "fields"
+                else request.form.get("vcard", "").encode("utf-8")
+            )
+            contact = archive().create_contact(payload)
+        except (ArchiveError, ContactFormError) as error:
             return render_template(
                 "edit.html",
                 title="Add a contact",
                 vcard=request.form.get("vcard", ""),
+                editor_mode=editor_mode,
+                form_values=(
+                    contact_form_values_from_post(request.form)
+                    if editor_mode == "fields"
+                    else empty_contact_form_values()
+                ),
                 error=str(error),
             ), 400
         return redirect(url_for("contact_detail", contact_id=contact.id))
@@ -285,16 +318,34 @@ def create_app(
         if request.method == "GET":
             return render_template(
                 "edit.html",
-                title="Edit export copy",
+                title="Edit contact",
                 contact=contact,
                 vcard=contact.current_vcard.decode("utf-8"),
+                editor_mode="fields",
+                form_values=contact_form_values_from_vcard(contact.current_vcard),
             )
+        editor_mode = _editor_mode()
         text = request.form.get("vcard", "")
         try:
-            archive().update_contact(contact_id, text.encode("utf-8"))
-        except ArchiveError as error:
+            payload = (
+                build_contact_vcard(request.form, existing_vcard=contact.current_vcard)
+                if editor_mode == "fields"
+                else text.encode("utf-8")
+            )
+            archive().update_contact(contact_id, payload)
+        except (ArchiveError, ContactFormError) as error:
             return render_template(
-                "edit.html", title="Edit export copy", contact=contact, vcard=text, error=str(error)
+                "edit.html",
+                title="Edit contact",
+                contact=contact,
+                vcard=text,
+                editor_mode=editor_mode,
+                form_values=(
+                    contact_form_values_from_post(request.form)
+                    if editor_mode == "fields"
+                    else contact_form_values_from_vcard(contact.current_vcard)
+                ),
+                error=str(error),
             ), 400
         return redirect(url_for("contact_detail", contact_id=contact_id))
 

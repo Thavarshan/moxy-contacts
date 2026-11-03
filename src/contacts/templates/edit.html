@@ -3,13 +3,96 @@
 {% block content %}
 <p class="eyebrow">CONTACT DETAILS</p>
 <h1>{{ title }}</h1>
-<p>Use a complete vCard so repeated fields, custom labels, and less common properties stay together.</p>
+<p>Use the form for everyday details, or switch to the vCard editor for full control over every property.</p>
 {% if error %}<div class="notice error" role="alert">{{ error }}</div>{% endif %}
-<div class="notice"><strong>Original and edits</strong><p>Saving changes only the export copy. The exact imported original stays private and appears in backups. If you remove an unknown or Apple-specific line here, it will be missing from edited exports but remain in the original.</p></div>
-<form class="form-card" action="{% if contact %}/contacts/{{ contact.id }}/edit{% else %}/contacts/new{% endif %}" method="post">
+
+<div class="editor-tabs" role="tablist" aria-label="Choose how to edit this contact" data-editor-tabs>
+  <button class="editor-tab" id="fields-tab" type="button" role="tab" aria-controls="fields-panel" aria-selected="{{ 'true' if editor_mode == 'fields' else 'false' }}" tabindex="{{ '0' if editor_mode == 'fields' else '-1' }}" data-editor-mode="fields">Contact form</button>
+  <button class="editor-tab" id="vcard-tab" type="button" role="tab" aria-controls="vcard-panel" aria-selected="{{ 'true' if editor_mode == 'vcard' else 'false' }}" tabindex="{{ '0' if editor_mode == 'vcard' else '-1' }}" data-editor-mode="vcard">vCard text</button>
+</div>
+
+<form class="form-card contact-editor" action="{% if contact %}/contacts/{{ contact.id }}/edit{% else %}/contacts/new{% endif %}" method="post">
   <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
-  <label for="vcard">vCard text</label>
-  <textarea id="vcard" name="vcard" rows="24" spellcheck="false" autocapitalize="off" autocomplete="off" required>{{ vcard }}</textarea>
-  <button class="button primary" type="submit">Save contact</button>
+  <input type="hidden" id="editor-mode" name="editor_mode" value="{{ editor_mode }}">
+
+  <div id="fields-panel" class="editor-panel" role="tabpanel" aria-labelledby="fields-tab" tabindex="0" {% if editor_mode != 'fields' %}hidden{% endif %}>
+    <div class="contact-form-grid">
+      <label><span>First name</span><input type="text" name="given_name" value="{{ form_values.given_name }}" maxlength="256" autocomplete="given-name"></label>
+      <label><span>Last name</span><input type="text" name="family_name" value="{{ form_values.family_name }}" maxlength="256" autocomplete="family-name"></label>
+      <label><span>Middle name</span><input type="text" name="additional_name" value="{{ form_values.additional_name }}" maxlength="256" autocomplete="additional-name"></label>
+      <label><span>Name prefix</span><input type="text" name="prefix" value="{{ form_values.prefix }}" maxlength="128" placeholder="Dr., Ms., etc."></label>
+      <label><span>Name suffix</span><input type="text" name="suffix" value="{{ form_values.suffix }}" maxlength="128" placeholder="Jr., PhD, etc."></label>
+      <label><span>Organization</span><input type="text" name="organization" value="{{ form_values.organization }}" maxlength="512" autocomplete="organization"></label>
+      <label><span>Job title</span><input type="text" name="title" value="{{ form_values.title }}" maxlength="512" autocomplete="organization-title"></label>
+      <label><span>Website</span><input type="url" name="website" value="{{ form_values.website }}" maxlength="2048" placeholder="https://example.com" autocomplete="url"></label>
+    </div>
+
+    <fieldset class="repeat-group" data-repeat-group data-repeat-template="email-row-template">
+      <legend>Email addresses</legend>
+      <div class="repeat-items" data-repeat-items>
+        {% for email in form_values.emails %}
+        <div class="repeat-row" data-repeat-item>
+          <label><span>Email address</span><input type="email" name="email" value="{{ email.value }}" maxlength="320" autocomplete="email"></label>
+          <label><span>Type</span><select name="email_type">
+            <option value="work" {% if email.type == 'work' %}selected{% endif %}>Work</option>
+            <option value="home" {% if email.type == 'home' %}selected{% endif %}>Home</option>
+            <option value="other" {% if email.type == 'other' %}selected{% endif %}>Other</option>
+          </select></label>
+          <button class="text-button" type="button" data-remove-item aria-label="Remove email address">Remove</button>
+        </div>
+        {% endfor %}
+      </div>
+      <button class="text-button" type="button" data-add-item>Add another email</button>
+    </fieldset>
+
+    <fieldset class="repeat-group" data-repeat-group data-repeat-template="phone-row-template">
+      <legend>Phone numbers</legend>
+      <div class="repeat-items" data-repeat-items>
+        {% for phone in form_values.phones %}
+        <div class="repeat-row" data-repeat-item>
+          <label><span>Phone number</span><input type="tel" name="phone" value="{{ phone.value }}" maxlength="128" autocomplete="tel"></label>
+          <label><span>Type</span><select name="phone_type">
+            <option value="mobile" {% if phone.type == 'mobile' %}selected{% endif %}>Mobile</option>
+            <option value="work" {% if phone.type == 'work' %}selected{% endif %}>Work</option>
+            <option value="home" {% if phone.type == 'home' %}selected{% endif %}>Home</option>
+            <option value="other" {% if phone.type == 'other' %}selected{% endif %}>Other</option>
+          </select></label>
+          <button class="text-button" type="button" data-remove-item aria-label="Remove phone number">Remove</button>
+        </div>
+        {% endfor %}
+      </div>
+      <button class="text-button" type="button" data-add-item>Add another phone</button>
+    </fieldset>
+
+    <label class="notes-field"><span>Notes</span><textarea name="note" rows="4" maxlength="4096">{{ form_values.note }}</textarea></label>
+    <p class="help-text">Saving the form updates these common fields and keeps other vCard properties. Use the vCard text tab to edit every property directly.</p>
+  </div>
+
+  <div id="vcard-panel" class="editor-panel" role="tabpanel" aria-labelledby="vcard-tab" tabindex="0" {% if editor_mode != 'vcard' %}hidden{% endif %}>
+    <label for="vcard">Complete vCard text</label>
+    <textarea id="vcard" name="vcard" rows="24" spellcheck="false" autocapitalize="off" autocomplete="off">{{ vcard }}</textarea>
+    <p class="help-text">Changes in this tab replace the export copy. The exact imported original remains available in backups.</p>
+  </div>
+
+  <div class="button-row editor-actions">
+    <button class="button primary" type="submit">{% if contact %}Save changes{% else %}Save contact{% endif %}</button>
+    <a class="button secondary" href="{% if contact %}/contacts/{{ contact.id }}{% else %}/contacts{% endif %}">Cancel</a>
+  </div>
 </form>
+
+<template id="email-row-template">
+  <div class="repeat-row" data-repeat-item>
+    <label><span>Email address</span><input type="email" name="email" maxlength="320" autocomplete="email"></label>
+    <label><span>Type</span><select name="email_type"><option value="work">Work</option><option value="home">Home</option><option value="other" selected>Other</option></select></label>
+    <button class="text-button" type="button" data-remove-item aria-label="Remove email address">Remove</button>
+  </div>
+</template>
+<template id="phone-row-template">
+  <div class="repeat-row" data-repeat-item>
+    <label><span>Phone number</span><input type="tel" name="phone" maxlength="128" autocomplete="tel"></label>
+    <label><span>Type</span><select name="phone_type"><option value="mobile">Mobile</option><option value="work">Work</option><option value="home">Home</option><option value="other" selected>Other</option></select></label>
+    <button class="text-button" type="button" data-remove-item aria-label="Remove phone number">Remove</button>
+  </div>
+</template>
 {% endblock %}
+{% block scripts %}<script src="/js/contact-editor.js" defer></script>{% endblock %}

@@ -5,6 +5,15 @@
 
 Moxy is a private archive for selected contacts from your iPhone. Import a `.vcf`, review the result, download a verified backup, and export a contact back to `.vcf` when you need it. Moxy never changes your phone or iCloud.
 
+## Preview
+
+These screenshots use synthetic contact records.
+
+<p align="center">
+  <img src="assets/screenshots/home.png" alt="Moxy Contacts home screen with import, search, browse, and add actions" width="49%">
+  <img src="assets/screenshots/archive.png" alt="Moxy Contacts browse screen with four synthetic contacts" width="49%">
+</p>
+
 ## Run it locally
 
 You need Python 3.13+, [uv](https://docs.astral.sh/uv/), Node.js, npm, and Git.

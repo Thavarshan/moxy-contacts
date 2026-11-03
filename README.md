@@ -65,7 +65,7 @@ GitHub Actions runs formatting, lint, types, tests (including a local Worker + D
 
 For CI deployment, add repository secret `CLOUDFLARE_API_TOKEN` with Workers Scripts edit, D1 edit, and Access Apps and Policies read permissions for this Cloudflare account. Set repository variable `CLOUDFLARE_ACCOUNT_ID` to this account's ID, and secret `SESSION_SECRET` to a long random value. Set `ACCESS_OWNER_EMAIL` to the exact email allowed by Access and `PRODUCTION_WORKER_URL` to the Worker origin. The deploy workflow only runs when you choose **deploy** for a dispatch from `main`; it never deploys on a normal push.
 
-On the current GitHub plan, branch protection and deployment environments are unavailable while this is a private personal repository. When the repository is public, configure a ruleset for `main` that requires pull requests and the `checks` status. Until then, production deployment only runs through a manual workflow dispatch from `main` after checks and the Access policy preflight. Pushes run CI and never deploy.
+The public repository's `main` branch ruleset requires pull requests, resolved review conversations, and the `checks` status; it also blocks force pushes and branch deletion. Production deployment only runs through a manual workflow dispatch from `main` after checks and the Access policy preflight. Pushes run CI and never deploy.
 
 ## Community and security
 

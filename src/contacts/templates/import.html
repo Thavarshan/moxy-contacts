@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}Import vCards · Moxy Contacts{% endblock %}
+{% block content %}
+<p class="eyebrow">IMPORT FROM YOUR IPHONE</p>
+<h1>Import selected contacts</h1>
+<p>Export selected contacts from your iPhone as a .vcf file, then choose that file here. The original vCard is retained exactly.</p>
+{% if error %}<div class="notice error" role="alert">{{ error }}</div>{% endif %}
+<form class="form-card" action="/contacts/import" method="post" enctype="multipart/form-data">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+  <label for="file">iPhone vCard file (.vcf)</label>
+  <input id="file" name="file" type="file" accept=".vcf,text/vcard" required>
+  <label class="check-row"><input type="checkbox" name="include_exact_duplicates" value="yes"> Import identical cards as extra copies</label>
+  <p class="help-text">Exact repeats are skipped by default. Possible matches are kept as separate contacts and reported; nothing is merged or overwritten.</p>
+  <button class="button primary" type="submit">Import and review</button>
+</form>
+<aside class="info-box"><strong>Before removing anything from your phone</strong><p>Review the import report, download a verified backup, and keep a copy somewhere you control. This app never edits your iPhone or iCloud.</p></aside>
+{% endblock %}

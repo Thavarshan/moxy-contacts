@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex, nofollow">
+    <title>{% block title %}Moxy Contacts{% endblock %}</title>
+    <link rel="stylesheet" href="/css/style.css">
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="wordmark" href="/">Moxy <span>Contacts</span></a>
+      <nav aria-label="Main navigation">
+        <a href="/contacts/import">Import</a>
+        <a href="/search">Search</a>
+        <a href="/contacts">Browse</a>
+      </nav>
+    </header>
+    <main class="page">
+      {% block content %}{% endblock %}
+    </main>
+    <footer class="site-footer">A private archive for contacts you choose to keep.</footer>
+  </body>
+</html>

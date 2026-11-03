@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}Import report · Moxy Contacts{% endblock %}
+{% block content %}
+<p class="eyebrow">IMPORT REPORT</p>
+<h1>Review what was imported</h1>
+<div class="report-card">
+  <p class="report-number">{{ report.imported_count }}</p>
+  <p>{% if report.imported_count == 1 %}contact imported{% else %}contacts imported{% endif %}. The original vCards are retained exactly.</p>
+  {% if report.exact_duplicates %}<p>{{ report.exact_duplicates }} exact duplicate{% if report.exact_duplicates != 1 %}s{% endif %} found. They were skipped unless you chose to keep extra copies.</p>{% endif %}
+  {% if report.possible_duplicates %}<p>{{ report.possible_duplicates }} possible match{% if report.possible_duplicates != 1 %}es{% endif %} kept as separate contacts. Review them; they were not merged.</p>{% endif %}
+</div>
+{% if report.issues %}
+  <h2>Cards to review</h2>
+  <ul class="issue-list">{% for issue in report.issues %}<li>Entry {{ issue.entry_number }}: {{ issue.message }}</li>{% endfor %}</ul>
+{% else %}
+  <p class="success-line">No malformed entries were found.</p>
+{% endif %}
+<section class="next-step"><h2>Make a backup before removing phone copies</h2><p>Download the ZIP and keep it somewhere you control. It contains the exact imported vCards, current edited exports, and SHA-256 checksums.</p><a class="button primary" href="/archive/backup.zip">Download verified backup</a></section>
+<p class="quiet-note"><a href="/contacts">Browse imported contacts</a> · <a href="/contacts/import">Import another file</a></p>
+{% endblock %}

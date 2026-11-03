@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Moxy Contacts{% endblock %}
+{% block content %}
+<section class="intro">
+  <p class="eyebrow">YOUR PRIVATE ARCHIVE</p>
+  <h1>Keep selected contacts, on your terms.</h1>
+  <p>Save a copy of a contact here, then remove it from your phone yourself when your backup is ready.</p>
+</section>
+<section class="action-grid" aria-label="Archive actions">
+  <a class="action-card primary" href="/contacts/import"><span class="action-icon">↑</span><strong>Import a vCard</strong><span>Bring in a .vcf file from your iPhone.</span></a>
+  <a class="action-card" href="/search"><span class="action-icon">⌕</span><strong>Search the archive</strong><span>Find a saved contact when you need it.</span></a>
+  <a class="action-card" href="/contacts"><span class="action-icon">≡</span><strong>Browse the archive</strong><span>Open the list only when you choose.</span></a>
+  <a class="action-card" href="/contacts/new"><span class="action-icon">＋</span><strong>Add a contact</strong><span>Create a vCard directly in the archive.</span></a>
+</section>
+<p class="quiet-note"><a href="/archive/backup.zip">Download a verified backup</a> · <a href="/archive/restore">Restore a backup</a></p>
+{% endblock %}

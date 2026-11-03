@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}{{ contact.display_name }} · Moxy Contacts{% endblock %}
+{% block content %}
+<p class="eyebrow"><a href="/contacts">ARCHIVE</a> / CONTACT</p>
+<div class="page-heading contact-heading">
+  <div>{% if has_photo %}<img class="contact-photo" src="/contacts/{{ contact.id }}/photo" alt="Contact photo">{% endif %}<h1>{{ contact.display_name }}</h1></div>
+  <div class="button-row"><a class="button secondary" href="/contacts/{{ contact.id }}/edit">Edit export</a><a class="button primary" href="/contacts/{{ contact.id }}/export.vcf">Export .vcf</a></div>
+</div>
+<p class="help-text">The imported original remains unchanged. This page shows the current version that exports to your phone.</p>
+<dl class="property-list">
+  {% for prop in properties %}
+    <div><dt>{{ prop.name }}{% if prop.label %}<span class="field-label">{{ prop.label }}</span>{% endif %}</dt><dd>{{ prop.value }}</dd>{% if prop.parameters %}<dd class="property-parameters">{{ prop.parameters }}</dd>{% endif %}</div>
+  {% endfor %}
+</dl>
+<section class="next-step"><h2>Preserved import</h2><p>The original vCard is stored separately and included in your ZIP backup.</p><a href="/contacts/{{ contact.id }}/original.vcf">Download original vCard</a></section>
+<div class="danger-zone"><h2>Remove from this archive</h2><p>This does not remove the contact from your iPhone or iCloud.</p><a class="button danger-outline" href="/contacts/{{ contact.id }}/delete">Review deletion</a></div>
+{% endblock %}

@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}{{ title }} · Moxy Contacts{% endblock %}
+{% block content %}
+<p class="eyebrow">CONTACT DETAILS</p>
+<h1>{{ title }}</h1>
+<p>Use a complete vCard so repeated fields, custom labels, and less common properties stay together.</p>
+{% if error %}<div class="notice error" role="alert">{{ error }}</div>{% endif %}
+<div class="notice"><strong>Original and edits</strong><p>Saving changes only the export copy. The exact imported original stays private and appears in backups. If you remove an unknown or Apple-specific line here, it will be missing from edited exports but remain in the original.</p></div>
+<form class="form-card" action="{% if contact %}/contacts/{{ contact.id }}/edit{% else %}/contacts/new{% endif %}" method="post">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+  <label for="vcard">vCard text</label>
+  <textarea id="vcard" name="vcard" rows="24" spellcheck="false" autocapitalize="off" autocomplete="off" required>{{ vcard }}</textarea>
+  <button class="button primary" type="submit">Save contact</button>
+</form>
+{% endblock %}

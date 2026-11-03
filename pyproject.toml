@@ -1,0 +1,51 @@
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[project]
+name = "moxy-contacts"
+version = "0.1.0"
+description = "A private vCard archive for Cloudflare Workers."
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "Flask>=3.1,<4",
+    "vobject==0.9.9",
+]
+
+[dependency-groups]
+dev = [
+  "mypy>=1.15",
+  "pytest>=8.3",
+  "ruff>=0.11",
+  "workers-py",
+  "workers-runtime-sdk",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/contacts"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"
+markers = ["integration: runs the application through the Cloudflare Workers local runtime"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py313"
+src = ["src", "tests"]
+exclude = [".venv", ".venv-workers", "node_modules", "dist", "build", "python_modules", ".wrangler"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+
+[tool.mypy]
+python_version = "3.13"
+mypy_path = "src"
+packages = ["contacts"]
+strict = true
+warn_unused_ignores = true
+
+[[tool.mypy.overrides]]
+module = ["vobject", "vobject.*"]
+ignore_missing_imports = true

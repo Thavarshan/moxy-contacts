@@ -1,0 +1,3 @@
+# Copy to .dev.vars for pywrangler dev. This file is ignored by git.
+APP_ENV=development
+SESSION_SECRET=replace-with-a-long-random-local-secret

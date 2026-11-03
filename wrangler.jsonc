@@ -1,0 +1,44 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "moxy-contacts",
+  "main": "src/worker.py",
+  "compatibility_date": "2026-11-03",
+  "compatibility_flags": ["python_workers"],
+  "workers_dev": true,
+  "preview_urls": false,
+  "assets": {
+    "directory": "./public/"
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "moxy-contacts",
+      "database_id": "bb59047c-f167-485a-8228-9c41c4412d6b",
+      "migrations_dir": "migrations"
+    }
+  ],
+  "vars": {
+    "APP_ENV": "development"
+  },
+  "env": {
+    "production": {
+      "name": "moxy-contacts",
+      "workers_dev": true,
+      "preview_urls": false,
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "moxy-contacts",
+          "database_id": "bb59047c-f167-485a-8228-9c41c4412d6b",
+          "migrations_dir": "migrations"
+        }
+      ],
+      "vars": {
+        "APP_ENV": "production"
+      },
+      "secrets": {
+        "required": ["SESSION_SECRET"]
+      }
+    }
+  }
+}

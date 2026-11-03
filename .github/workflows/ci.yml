@@ -1,0 +1,134 @@
+name: CI and production deployment
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      production_deploy:
+        description: Deploy this checked main commit to production
+        type: choice
+        options: [skip, deploy]
+        default: skip
+        required: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  checks:
+    name: checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install locked dependencies
+        run: |
+          uv sync --locked --all-groups
+          npm ci
+      - name: Check built frontend assets
+        run: npm run check
+      - name: Verify formatting
+        run: uv run ruff format --check
+      - name: Lint
+        run: uv run ruff check
+      - name: Type check
+        run: uv run mypy
+      - name: Unit and Cloudflare runtime tests
+        run: uv run pytest
+      - name: Validate Python package build
+        run: uv build
+
+  deploy-production:
+    name: deploy production
+    needs: checks
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.production_deploy == 'deploy'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    concurrency:
+      group: production-deploy
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install locked dependencies and build assets
+        run: |
+          uv sync --locked --all-groups
+          npm ci
+          npm run build
+      - name: Check deployment secrets and origin
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          PRODUCTION_WORKER_URL: ${{ vars.PRODUCTION_WORKER_URL }}
+          ACCESS_OWNER_EMAIL: ${{ vars.ACCESS_OWNER_EMAIL }}
+          SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
+        run: |
+          test -n "$CLOUDFLARE_API_TOKEN" || { echo "CLOUDFLARE_API_TOKEN is required"; exit 1; }
+          test -n "$CLOUDFLARE_ACCOUNT_ID" || { echo "CLOUDFLARE_ACCOUNT_ID is required"; exit 1; }
+          test -n "$PRODUCTION_WORKER_URL" || { echo "PRODUCTION_WORKER_URL is required"; exit 1; }
+          test -n "$ACCESS_OWNER_EMAIL" || { echo "ACCESS_OWNER_EMAIL is required"; exit 1; }
+          test -n "$SESSION_SECRET" || { echo "SESSION_SECRET is required"; exit 1; }
+      - name: Verify the actual Cloudflare Access policy before deployment
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          ACCESS_OWNER_EMAIL: ${{ vars.ACCESS_OWNER_EMAIL }}
+        run: uv run python scripts/verify_access.py
+      - name: Verify the current production Worker is already private
+        env:
+          PRODUCTION_WORKER_URL: ${{ vars.PRODUCTION_WORKER_URL }}
+        run: uv run python scripts/smoke_access.py
+      - name: Apply D1 schema
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: uv run pywrangler d1 migrations apply DB --remote --env production
+      - name: Prepare temporary Worker secrets file
+        env:
+          WORKER_SECRETS_FILE: ${{ runner.temp }}/moxy-worker-secrets.json
+          SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
+        run: uv run python scripts/write_worker_secrets.py "$WORKER_SECRETS_FILE"
+      - name: Deploy the checked main commit
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          WORKER_SECRETS_FILE: ${{ runner.temp }}/moxy-worker-secrets.json
+        run: uv run pywrangler deploy --env production --secrets-file "$WORKER_SECRETS_FILE"
+      - name: Verify unauthenticated requests are blocked by Cloudflare Access
+        env:
+          PRODUCTION_WORKER_URL: ${{ vars.PRODUCTION_WORKER_URL }}
+        run: uv run python scripts/smoke_access.py
+      - name: Remove temporary Worker secrets file
+        if: always()
+        env:
+          WORKER_SECRETS_FILE: ${{ runner.temp }}/moxy-worker-secrets.json
+        run: python scripts/write_worker_secrets.py --remove "$WORKER_SECRETS_FILE"

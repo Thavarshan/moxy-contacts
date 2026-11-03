@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}Restore report · Moxy Contacts{% endblock %}
+{% block content %}
+<p class="eyebrow">RESTORE REPORT</p>
+<h1>Backup checked</h1>
+<p>{{ report.imported_count }} contact{% if report.imported_count != 1 %}s{% endif %} restored. Existing contacts were not overwritten.</p>
+{% if report.exact_duplicates %}<p>{{ report.exact_duplicates }} exact duplicate{% if report.exact_duplicates != 1 %}s{% endif %} skipped.</p>{% endif %}
+{% if report.possible_duplicates %}<p>{{ report.possible_duplicates }} possible match{% if report.possible_duplicates != 1 %}es{% endif %} restored separately for review.</p>{% endif %}
+{% if report.id_conflicts %}<p>{{ report.id_conflicts }} ID conflict{% if report.id_conflicts != 1 %}s{% endif %} received new archive IDs.</p>{% endif %}
+<a class="button primary" href="/contacts">Browse archive</a>
+{% endblock %}

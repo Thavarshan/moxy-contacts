@@ -1,0 +1,10 @@
+{
+  "name": "moxy-contacts",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build_frontend.mjs",
+    "check": "node scripts/build_frontend.mjs --check"
+  },
+  "devDependencies": { "wrangler": "4.157.0" }
+}

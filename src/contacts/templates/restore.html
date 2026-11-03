@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Restore backup · Moxy Contacts{% endblock %}
+{% block content %}
+<p class="eyebrow">RESTORE YOUR ARCHIVE</p>
+<h1>Restore from a Moxy backup</h1>
+<p>Choose the .zip file you downloaded from this app. Every file is checked against its SHA-256 checksum before any contact is restored.</p>
+{% if error %}<div class="notice error" role="alert">{{ error }}</div>{% endif %}
+<form class="form-card" action="/archive/restore" method="post" enctype="multipart/form-data">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+  <label for="file">Moxy backup (.zip)</label>
+  <input id="file" name="file" type="file" accept=".zip,application/zip" required>
+  <label class="check-row"><input type="checkbox" name="include_exact_duplicates" value="yes"> Restore exact copies as additional contacts</label>
+  <p class="help-text">Matching records are skipped by default. Existing contacts are never overwritten.</p>
+  <button class="button primary" type="submit">Verify and restore</button>
+</form>
+{% endblock %}

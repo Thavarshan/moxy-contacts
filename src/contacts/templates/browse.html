@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}{% if searched %}Search{% else %}Browse{% endif %} · Moxy Contacts{% endblock %}
+{% block content %}
+<div class="page-heading">
+  <div><p class="eyebrow">PRIVATE ARCHIVE</p><h1>{% if searched %}Search results{% else %}Browse contacts{% endif %}</h1></div>
+  <a class="button secondary" href="/contacts/new">Add a contact</a>
+</div>
+<form class="search-form" action="/search" method="get">
+  <label for="q">Name, email, phone, company, or another saved field</label>
+  <div class="search-row"><input id="q" name="q" type="search" value="{{ query|default('') }}" maxlength="200" autocomplete="off"><button class="button primary" type="submit">Search</button></div>
+</form>
+{% if contacts %}
+  <ul class="contact-list">
+  {% for contact in contacts %}
+    <li><a href="/contacts/{{ contact.id }}"><span>{{ contact.display_name }}</span><span class="arrow" aria-hidden="true">→</span></a></li>
+  {% endfor %}
+  </ul>
+{% elif searched %}
+  <p class="empty-state">{% if query %}No contacts matched that search.{% else %}Enter a search to look through the archive.{% endif %}</p>
+{% else %}
+  <p class="empty-state">This archive is empty. Import a vCard to get started.</p>
+{% endif %}
+<p class="quiet-note"><a href="/archive/backup.zip">Download a verified backup</a></p>
+{% endblock %}

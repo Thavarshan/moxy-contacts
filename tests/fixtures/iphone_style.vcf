@@ -1,0 +1,28 @@
+BEGIN:VCARD
+VERSION:3.0
+PRODID:-//Apple Inc.//iPhone OS 18.0//EN
+N:Koda;Zoë;S.;Dr.;PhD
+FN:Dr. Zoë S. Koda
+NICKNAME:Z ✨
+X-PHONETIC-FIRST-NAME:Zoe
+X-PHONETIC-LAST-NAME:Koda
+ORG:Orbit\, Research;Data Science
+TITLE:Chief Scientist
+item1.TEL;TYPE=HOME,VOICE:+1-555-0100
+item1.X-ABLabel:_$!<Home>!$_
+TEL;TYPE=CELL,VOICE:+1-555-0101
+EMAIL;TYPE=HOME:zoe@example.test
+EMAIL;TYPE=WORK:zoe.work@example.test
+item2.ADR;TYPE=WORK:;;42 Main Street;Colombo;;;Sri Lanka
+item2.X-ABLabel:Office
+URL:https://example.test/zoe
+BDAY:1990-03-02
+X-ABDATE:2018-07-19
+X-ABRELATEDNAMES;TYPE=manager:Sam Example
+X-SOCIALPROFILE;TYPE=twitter;x-user=zoe-example:https://example.test/@zoe
+IMPP;X-SERVICE-TYPE=Signal:signal:zoe-example
+NOTE:Met at a synthetic test conference.
+PHOTO;ENCODING=b;TYPE=JPEG:/9j/4AAQSkZJRgABAQAAAQABAAD/2wBD
+X-APPLE-OMIT-YEAR:1
+X-CUSTOM-PROPERTY:Keep this unknown value
+END:VCARD

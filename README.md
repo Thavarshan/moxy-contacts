@@ -1,5 +1,8 @@
 # Moxy Contacts
 
+[![CI](https://github.com/Thavarshan/moxy-contacts/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/Thavarshan/moxy-contacts/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+
 Moxy is a private archive for selected contacts from your iPhone. Import a `.vcf`, review the result, download a verified backup, and export a contact back to `.vcf` when you need it. Moxy never changes your phone or iCloud.
 
 ## Run it locally
@@ -62,7 +65,15 @@ GitHub Actions runs formatting, lint, types, tests (including a local Worker + D
 
 For CI deployment, add repository secret `CLOUDFLARE_API_TOKEN` with Workers Scripts edit, D1 edit, and Access Apps and Policies read permissions for this Cloudflare account. Set repository variable `CLOUDFLARE_ACCOUNT_ID` to this account's ID, and secret `SESSION_SECRET` to a long random value. Set `ACCESS_OWNER_EMAIL` to the exact email allowed by Access and `PRODUCTION_WORKER_URL` to the Worker origin. The deploy workflow only runs when you choose **deploy** for a dispatch from `main`; it never deploys on a normal push.
 
-The current GitHub plan does not allow branch protection or deployment environments on a private personal repository. The workflow's manual `main`-only dispatch is the deployment gate for now; pushes still run checks and never deploy. GitHub Pro enables private-repository branch protection if you want to require pull requests and the `checks` result. This app does not enable a paid plan.
+On the current GitHub plan, branch protection and deployment environments are unavailable while this is a private personal repository. When the repository is public, configure a ruleset for `main` that requires pull requests and the `checks` status. Until then, production deployment only runs through a manual workflow dispatch from `main` after checks and the Access policy preflight. Pushes run CI and never deploy.
+
+## Community and security
+
+Moxy Contacts is licensed under MIT. See [CONTRIBUTING.md](CONTRIBUTING.md) for
+development and pull request guidance, [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)
+for participation expectations, and [SECURITY.md](SECURITY.md) for private
+vulnerability reporting. Use synthetic data in all public issues, pull requests,
+fixtures, screenshots, and logs.
 
 ## Checks
 

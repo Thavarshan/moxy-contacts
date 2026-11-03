@@ -1,0 +1,43 @@
+name: Bug report
+description: Report a reproducible problem with Moxy Contacts.
+title: "[Bug]: "
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please use synthetic examples. Do not upload or paste real contact records, credentials, or private data.
+  - type: textarea
+    id: summary
+    attributes:
+      label: What happened?
+      description: Describe the problem and what you expected to happen.
+      placeholder: A clear summary of the behavior.
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce
+      description: Include the smallest set of steps and synthetic input needed to reproduce it.
+      placeholder: |
+        1. Start the app with ...
+        2. Open ...
+        3. Submit synthetic data ...
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version or commit
+      description: Provide the release version or commit SHA.
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Python, Node.js, browser, and whether this is local or Cloudflare Workers.
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant logs or screenshots
+      description: Remove names, phone numbers, email addresses, tokens, and other private data before sharing.

@@ -36,12 +36,63 @@ from contacts.contact_form import (
     empty_contact_form_values,
 )
 from contacts.storage import ArchiveStore, D1ArchiveStore, SQLiteArchiveStore
-from contacts.vcards import parse_photo, parse_vcard
+from contacts.vcards import PropertyView, parse_photo, parse_vcard
 
 ROOT = Path(__file__).resolve().parents[2]
 PUBLIC_DIR = ROOT / "public"
 LOCAL_SECRET_KEY = "local-development-only-not-for-real-data"
 MAX_UPLOAD_BYTES = 12 * 1024 * 1024
+_HIDDEN_CONTACT_PROPERTIES = frozenset(
+    {
+        "VERSION",
+        "PRODID",
+        "REV",
+        "UID",
+        "N",
+        "FN",
+        "PHOTO",
+        "LOGO",
+        "SOUND",
+        "KEY",
+        "X-ABLABEL",
+    }
+)
+_CONTACT_PROPERTY_LABELS = {
+    "ADR": "Address",
+    "BDAY": "Birthday",
+    "EMAIL": "Email",
+    "NICKNAME": "Nickname",
+    "NOTE": "Notes",
+    "ORG": "Organization",
+    "TEL": "Phone",
+    "TITLE": "Job title",
+    "URL": "Website",
+}
+
+
+def _avatar_initials(display_name: str) -> str:
+    words = [
+        "".join(character for character in word if character.isalnum())
+        for word in display_name.split()
+    ]
+    words = [word for word in words if word]
+    if not words:
+        return "?"
+    initials = words[0][0]
+    initials += words[-1][0] if len(words) > 1 else words[0][1:2]
+    return initials.upper()
+
+
+def _contact_property_for_display(prop: PropertyView) -> dict[str, str]:
+    name = _CONTACT_PROPERTY_LABELS.get(prop.name)
+    if name is None:
+        name = prop.name
+    labels = [
+        "Preferred" if value.strip().casefold() == "pref" else value.strip()
+        for value in prop.label.split(",")
+        if value.strip().casefold() not in {"internet", "voice"}
+    ]
+    return {"name": name, "label": ", ".join(labels), "value": prop.value}
 
 
 def _editor_mode() -> str:
@@ -306,8 +357,17 @@ def create_app(
         return render_template(
             "contact.html",
             contact=contact,
-            properties=card.properties,
-            has_photo=card.photo is not None,
+            avatar_initials=_avatar_initials(contact.display_name),
+            properties=[
+                _contact_property_for_display(prop)
+                for prop in card.properties
+                if prop.name not in _HIDDEN_CONTACT_PROPERTIES
+            ],
+            technical_properties=[
+                _contact_property_for_display(prop)
+                for prop in card.properties
+                if prop.name in _HIDDEN_CONTACT_PROPERTIES
+            ],
         )
 
     @app.route("/contacts/<contact_id>/edit", methods=["GET", "POST"])

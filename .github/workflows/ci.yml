@@ -58,7 +58,10 @@ jobs:
   deploy-production:
     name: deploy production
     needs: checks
-    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main' && inputs.production_deploy == 'deploy'
+    if: >-
+      github.ref == 'refs/heads/main' &&
+      (github.event_name == 'push' ||
+      (github.event_name == 'workflow_dispatch' && inputs.production_deploy == 'deploy'))
     runs-on: ubuntu-latest
     timeout-minutes: 15
     concurrency:
@@ -107,23 +110,38 @@ jobs:
         env:
           PRODUCTION_WORKER_URL: ${{ vars.PRODUCTION_WORKER_URL }}
         run: uv run python scripts/smoke_access.py
+      - name: Confirm this is still the latest main commit
+        id: freshness
+        run: |
+          latest_sha="$(git ls-remote origin refs/heads/main | awk 'NR == 1 { print $1 }')"
+          test -n "$latest_sha" || { echo "Could not read the main branch tip"; exit 1; }
+          if [ "$latest_sha" = "$GITHUB_SHA" ]; then
+            echo "is_latest=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "is_latest=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::A newer main commit exists; skipping this deployment."
+          fi
       - name: Apply D1 schema
+        if: steps.freshness.outputs.is_latest == 'true'
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
         run: uv run pywrangler d1 migrations apply DB --remote --env production
       - name: Prepare temporary Worker secrets file
+        if: steps.freshness.outputs.is_latest == 'true'
         env:
           WORKER_SECRETS_FILE: ${{ runner.temp }}/moxy-worker-secrets.json
           SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
         run: uv run python scripts/write_worker_secrets.py "$WORKER_SECRETS_FILE"
       - name: Deploy the checked main commit
+        if: steps.freshness.outputs.is_latest == 'true'
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
           WORKER_SECRETS_FILE: ${{ runner.temp }}/moxy-worker-secrets.json
         run: uv run pywrangler deploy --env production --secrets-file "$WORKER_SECRETS_FILE"
       - name: Verify unauthenticated requests are blocked by Cloudflare Access
+        if: steps.freshness.outputs.is_latest == 'true'
         env:
           PRODUCTION_WORKER_URL: ${{ vars.PRODUCTION_WORKER_URL }}
         run: uv run python scripts/smoke_access.py

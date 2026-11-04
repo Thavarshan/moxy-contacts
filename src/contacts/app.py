@@ -86,7 +86,7 @@ def _avatar_initials(display_name: str) -> str:
 def _contact_property_for_display(prop: PropertyView) -> dict[str, str]:
     name = _CONTACT_PROPERTY_LABELS.get(prop.name)
     if name is None:
-        name = prop.name.replace("-", " ").replace("_", " ").title()
+        name = prop.name
     labels = [
         "Preferred" if value.strip().casefold() == "pref" else value.strip()
         for value in prop.label.split(",")

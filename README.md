@@ -13,6 +13,11 @@ These screenshots use synthetic contact records.
   <img src="assets/screenshots/home.png" alt="Moxy Contacts home screen with import, search, browse, and add actions" width="49%">
   <img src="assets/screenshots/archive.png" alt="Moxy Contacts browse screen with four synthetic contacts" width="49%">
 </p>
+<p align="center">
+  <img src="assets/screenshots/add-contact.png" alt="Add contact screen with tabs for the structured form and full vCard text editor" width="80%">
+</p>
+
+Add a contact with the structured form or switch to vCard text for full control. Edit either view from a contact's detail page; deleting a contact requires confirmation.
 
 ## Run it locally
 
@@ -49,11 +54,14 @@ The editor changes the current export copy only. It is a complete vCard text edi
 ## Files to know
 
 - `src/contacts/app.py` — Flask pages, forms, and web security.
+- `src/contacts/contact_form.py` — structured contact fields and vCard conversion.
 - `src/contacts/archive.py` — import, duplicate review, editing, export, and backup rules.
 - `src/contacts/vcards.py` — vCard parsing and safe display values.
 - `src/contacts/storage.py` — local SQLite-compatible operations and the Cloudflare D1 adapter.
 - `src/contacts/templates/` — the HTML pages.
 - `assets/css/style.css` — editable stylesheet; `public/` contains the built static copy.
+- `assets/js/contact-editor.js` — accessible editor tabs and repeatable email/phone fields.
+- `assets/screenshots/` — README previews made with synthetic data.
 - `migrations/` — D1 table definitions.
 - `tests/fixtures/` and `tests/` — synthetic examples and checks; never add real contacts here.
 - `wrangler.jsonc` — Cloudflare Worker, static files, and D1 configuration.

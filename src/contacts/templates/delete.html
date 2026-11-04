@@ -2,13 +2,13 @@
 {% block title %}Review deletion · Moxy Contacts{% endblock %}
 {% block content %}
 <p class="eyebrow">DESTRUCTIVE ACTION</p>
-<h1>Remove {{ contact.display_name }} from this archive?</h1>
+<h1>Delete {{ contact.display_name }} from this archive?</h1>
 {% if error %}<div class="notice error" role="alert">{{ error }}</div>{% endif %}
 <div class="notice"><p>This removes the active contact record, its current vCard, and its stored original from the archive.</p><p>It does not remove anything from your iPhone or iCloud. ZIP backups you downloaded remain where you saved them. Cloudflare D1 Time Travel may retain deleted database states for up to seven days.</p></div>
 <form class="form-card" action="/contacts/{{ contact.id }}/delete" method="post">
   <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
   <input type="hidden" name="confirm" value="yes">
-  <button class="button danger" type="submit">Remove from archive</button>
-  <a class="button secondary" href="/contacts/{{ contact.id }}">Keep contact</a>
+  <button class="button danger" type="submit">Delete contact</button>
+  <a class="button secondary" href="/contacts/{{ contact.id }}">Cancel</a>
 </form>
 {% endblock %}
